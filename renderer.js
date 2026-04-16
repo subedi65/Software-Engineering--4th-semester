@@ -4,6 +4,7 @@ const textarea = document.getElementById('note');
 window.addEventListener('DOMContentLoaded', async () => {
     const saveButton = document.getElementById('save');
     const statusEl = document.getElementById('save_status');
+    const saveAsButton = document.getElementById('saveAs');
 
     // load saved note on startup
     const savedNote = await window.electronAPI.loadNote();
@@ -27,6 +28,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
 });
+saveAsButton.addEventListener('click', async () => {
+    const result = await window.electronAPI.saveAs(textarea.value);
+    if (result.success) {
+        lastSavedText = textarea.value;
+        statusEl.textContent = `Note saved as ${result.filepath}`;
+    } else {
+        statusEl.textContent = 'Save As cancelled';
+    }
+});
 
 let debounceTimer;
 async function autosave() {
@@ -39,15 +49,9 @@ async function autosave() {
         await window.electronAPI.saveNote(currentText);
         lastSavedText = currentText;
         const now = new Date().toLocaleTimeString();
-        if (statusEl) statusEl.textContent = `"Auto_ saved at ${now}`;
+         statusEl.textContent = `Auto_ saved at ${now}`;
     } catch (err) {
         console.error("Error auto-saving note:", err);
-        if (statusEl) statusEl.textContent = "Error auto-saving note";
+         statusEl.textContent = "Error auto-saving note";
     }
 }
-//debounce auto-saving to avoid excessive saves while typing
-textarea.addEventListener('input', () => {
-    if (statusEl) statusEl.textContent = 'Changes detected - auto save in 5s auto-save...';
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(autosave, 5000);
-});

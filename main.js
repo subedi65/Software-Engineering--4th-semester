@@ -35,3 +35,25 @@ ipcMain.handle("load-note",async()=>{
     }
     return "";
 });
+ipcMain.handle("save -as ",async(event,text)=>{
+    const result= await dialog.ShowSaveDialog({
+        defaultPath:"mynote.txt",
+        filters:[{name:"Text Files",extensions:["txt"]}]
+    });
+    if(result.canceled){
+        return{ success:false};
+    }
+    fs.writeFileSync(result.filepath,text,"utf8");
+    return {success:true,filepath:result.filepath};
+});
+
+ipcMain.handle('new-note',async(event)=> {
+    const result= await dialog.showMessageBox({
+        type:"warning",
+        buttons: ["Discard changes","cancel"],
+        defaultId:1,
+        title:"unsaved changes",
+        message:"You have unsaved changes. Do you want to discard them and create a new note?"
+    });
+    return {confirmed : result.response===0};
+});
