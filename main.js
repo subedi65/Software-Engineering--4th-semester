@@ -1,7 +1,4 @@
-
-
-
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 
 app.disableHardwareAcceleration();
 
@@ -50,15 +47,15 @@ ipcMain.handle('load-note', async () => {
     }
     return '';
 });
+
 ipcMain.handle('save-as', async (event, text) => {
-    // Implementation for saving as a new file
-    const result =await dialog.showSacveDialog({
+    const result = await dialog.showSaveDialog({
         defaultPath:"mynote.txt",
         filters:[{name:'Text Files',extensions:["txt"]}]    
     });
     if (result.canceled){
         return{success:false};
     }
-    fs.writeFilesync(result.filePath, text, 'utf-8');
-    return { success: true }; 
+    fs.writeFileSync(result.filePath, text, 'utf-8');
+    return { success: true, filePath: result.filePath }; 
 });

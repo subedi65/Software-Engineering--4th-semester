@@ -1,4 +1,3 @@
-#rendere.js
 window.addEventListener('DOMContentLoaded', async () => {
     const textarea = document.getElementById('note');
     const saveBtn = document.getElementById('save');
