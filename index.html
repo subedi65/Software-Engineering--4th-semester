@@ -1,44 +1,25 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
-    <title>Quick Note Taker test git</title>
+    <title>Quick Note Taker</title>
     <style>
-        body {
-            font-family: system-ui;
-            padding: 20px;
-            background: #f4f4f4;
-        }
-        textarea {
-            width: 95%;
-            height: 60vh;
-            font-size: 18px;
-            padding: 15px;
-        }
-        button {
-            padding: 12px 30px;
-            font-size: 18px;
-            background: #316357;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+        body { font-family: system-ui; padding: 20px; background: #f4f4f4; }
+        textarea { width: 95%; height: 60vh; font-size: 18px; padding: 15px; }
+        button { padding: 12px 30px; font-size: 18px; background: #316357; color: white; border: none; cursor: pointer; border-radius: 5px; margin-right: 5px;}
     </style>
 </head>
-
 <body>
     <h1>📝Quick Note Taker</h1>
     <h2>Work at home</h2>
     <br>
-    <p id="save_status" style="font-size: 14px; color: #666;">Auto save status</p>
+    <p id="save_status" style="font-size: 14px; color: #666;">Ready</p>
     <textarea id="note" placeholder="Start typing your note..."></textarea>
     <br><br>
-    <button id="save">💾Save Note 🎬</button>
-    <button id="save-as">💾Save As</button>
-    <div id="save_status_box" style="margin-top:10px; color:#666; font-size:0.9em;"></div>
+    <button id="new-note">📄 New Note</button>
+    <button id="open-file">📂 Open File</button>
+    <button id="save">💾 Save Note</button>
+    <button id="save-as">💾 Save As</button>
     <script src="renderer.js"></script>
 </body>
-
 </html>
