@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const {Menutempelate} = require('./menutempelate');
 
 app.disableHardwareAcceleration();
 
@@ -14,7 +15,10 @@ function createWindow() {
             nodeIntegration: false
         }
     });
+    const menu =Menu.buildFromTemplate(Menutempelate);
+    Menu.setApplicationMenu(menu);
     win.loadFile('index.html');
+
 }
 
 app.whenReady().then(() => {
