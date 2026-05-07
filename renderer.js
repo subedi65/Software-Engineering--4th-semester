@@ -8,29 +8,60 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let currentFilePath = null;
 
-    // Initial Load
-    const savedNote = await window.electronAPI.loadNote();
-    textarea.value = savedNote;
+    // --- 1. INITIAL LOAD (JSON Storage) ---
+    // Instead of loading a single .txt file, we could now fetch all JSON notes
+    const notes = await window.electronAPI.getNotes();
+    if (notes.length > 0) {
+        // For now, let's load the most recent note from our JSON list
+        textarea.value = notes[notes.length - 1].content;
+    } else {
+        const savedNote = await window.electronAPI.loadNote();
+        textarea.value = savedNote;
+    }
     let lastSavedText = textarea.value;
 
-    // 1. Save Note (Smart Save Logic)
-    saveBtn.addEventListener('click', async () => {
-        // if (!currentFilePath) {
-            const result = await window.electronAPI.saveNote(textarea.value);
-        //     if (result.success) {
-        //         currentFilePath = result.filePath;
-        //         lastSavedText = textarea.value;
-        //         statusEl.textContent = `Saved to: ${result.filePath}`;
-        //     }
-        // } else {
-        //     await window.electronAPI.saveNote(textarea.value, currentFilePath);
-        //     lastSavedText = textarea.value;
-        //     statusEl.textContent = 'Saved!';
-        // }
-        alert('Note saved successfully')
+    // --- 2. MENU ACTION LISTENERS (NEW) ---
+    // These link the native app menu clicks to your existing functions
+    window.electronAPI.onMenuAction('menu-new-note', () => {
+        newNoteBtn.click();
     });
 
-    // 2. Save As
+    window.electronAPI.onMenuAction('menu-open-file', () => {
+        openBtn.click();
+    });
+
+    window.electronAPI.onMenuAction('menu-save', () => {
+        saveBtn.click();
+    });
+
+    window.electronAPI.onMenuAction('menu-save-as', () => {
+        saveAsBtn.click();
+    });
+
+    // --- 3. UPDATED BUTTON LOGIC ---
+
+    // Save Note
+    saveBtn.addEventListener('click', async () => {
+        const text = textarea.value;
+        
+        // Save to .txt file (Existing logic)
+        const result = await window.electronAPI.saveNote(text, currentFilePath);
+        
+        // ALSO: Save to JSON Storage (New logic from PDF)
+        const noteObject = {
+            id: currentFilePath || Date.now().toString(), // Use path or timestamp as ID
+            title: text.substring(0, 20) || "Untitled Note",
+            content: text,
+            updatedAt: new Date().toISOString()
+        };
+        await window.electronAPI.saveJSONNote(noteObject);
+
+        lastSavedText = text;
+        statusEl.textContent = 'Note saved successfully (TXT & JSON)';
+        alert('Note saved successfully');
+    });
+
+    // Save As
     saveAsBtn.addEventListener('click', async () => {
         const result = await window.electronAPI.saveNoteAs(textarea.value);
         if (result.success) {
@@ -40,7 +71,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 3. New Note
+    // New Note
     newNoteBtn.addEventListener('click', async () => {
         if (textarea.value !== lastSavedText) {
             const result = await window.electronAPI.newNote();
@@ -52,7 +83,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         statusEl.textContent = 'New note started.';
     });
 
-    // 4. Open File
+    // Open File
     openBtn.addEventListener('click', async () => {
         const result = await window.electronAPI.openFile();
         if (result.success) {
@@ -63,11 +94,20 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Auto-save logic
+    // --- 4. AUTO-SAVE LOGIC ---
     async function autoSave() {
         if (textarea.value === lastSavedText) return;
         try {
+            // Auto-save to both the current file and the JSON storage
             await window.electronAPI.saveNote(textarea.value, currentFilePath);
+            
+            const noteObject = {
+                id: currentFilePath || 'autosave-note',
+                content: textarea.value,
+                updatedAt: new Date().toISOString()
+            };
+            await window.electronAPI.saveJSONNote(noteObject);
+
             lastSavedText = textarea.value;
             statusEl.textContent = `Auto-saved at ${new Date().toLocaleTimeString()}`;
         } catch (err) {
