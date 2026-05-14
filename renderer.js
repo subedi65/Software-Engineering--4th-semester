@@ -100,14 +100,31 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     saveAsBtn.addEventListener('click', async () => {
-        const result = await window.electronAPI.saveNoteAs(textarea.value);
 
-        if (result.success) {
-            currentFilePath = result.filePath;
-            lastSavedText = textarea.value;
-            statusEl.textContent = `Saved as: ${result.filePath}`;
-        }
-    });
+    const result = await window.electronAPI.saveNoteAs(textarea.value);
+
+    if (result.success) {
+
+        currentFilePath = result.filePath;
+
+        const fileName = result.filePath
+            .split('\\')
+            .pop()
+            .split('/')
+            .pop();
+
+        const noteObject = {
+            id: result.filePath,
+            title: fileName,
+            content: textarea.value,
+            updatedAt: new Date().toISOString()
+        };
+        await window.electronAPI.saveJSONNote(noteObject);
+        renderNotes(await window.electronAPI.getNotes());
+        lastSavedText = textarea.value;
+        statusEl.textContent = `Saved as: ${fileName}`;
+    }
+});
 
     newNoteBtn.addEventListener('click', async () => {
         if (textarea.value !== lastSavedText) {
