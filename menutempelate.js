@@ -1,50 +1,48 @@
-const { BrowserWindow, app, Menu } = require('electron'); // [cite: 14]
+const { BrowserWindow, app } = require('electron');
 
 const Menutempelate = [
     {
-        label: "File", // [cite: 18, 19]
+        label: 'File',
         submenu: [
             {
-                label: "New Note", // 
-                accelerator: "CmdOrCtrl+N", // 
+                label: 'New Note',
+                accelerator: 'CmdOrCtrl+N',
                 click: () => {
-                    // Sends a message to renderer.js to trigger the New Note logic 
-                    BrowserWindow.getFocusedWindow().webContents.send("menu-new-note");
+                    BrowserWindow.getFocusedWindow().webContents.send('menu-new-note');
                 }
             },
             {
-                label: "Open File", // 
-                accelerator: "CmdOrCtrl+O", // 
+                label: 'Open File',
+                accelerator: 'CmdOrCtrl+O',
                 click: () => {
-                    // Sends a message to renderer.js to open the file dialog [cite: 20, 26]
-                    BrowserWindow.getFocusedWindow().webContents.send("menu-open-file");
+                    BrowserWindow.getFocusedWindow().webContents.send('menu-open-file');
                 }
             },
             {
-                type: "separator" // Adds a dividing line between sections 
+                type: 'separator'
             },
             {
-                label: "Save",
-                accelerator: "CmdOrCtrl+S",
+                label: 'Save',
+                accelerator: 'CmdOrCtrl+S',
                 click: () => {
-                    BrowserWindow.getFocusedWindow().webContents.send("menu-save"); // [cite: 19, 21]
+                    BrowserWindow.getFocusedWindow().webContents.send('menu-save');
                 }
             },
             {
-                label: "Save As",
-                accelerator: "CmdOrCtrl+Shift+S",
+                label: 'Save As',
+                accelerator: 'CmdOrCtrl+Shift+S',
                 click: () => {
-                    BrowserWindow.getFocusedWindow().webContents.send("menu-save-as"); // 
+                    BrowserWindow.getFocusedWindow().webContents.send('menu-save-as');
                 }
             },
             {
-                type: "separator"
+                type: 'separator'
             },
             {
-                label: "Exit",
-                role: "quit", // Standard role to quit the application 
-                accelerator: "CmdOrCtrl+Q",
-                click: () => app.quit() // 
+                label: 'Exit',
+                role: 'quit',
+                accelerator: 'CmdOrCtrl+Q',
+                click: () => app.quit()
             }
         ]
     }

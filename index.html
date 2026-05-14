@@ -3,40 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <title>Quick Note Taker</title>
+
     <style>
-        body { font-family: system-ui; padding: 20px; background: #f4f4f4; display: flex; flex-direction: column; height: 90vh; }
-        .container { display: flex; flex: 1; gap: 20px; }
-        
-        /* Sidebar for Multiple Notes */
-        #sidebar { width: 250px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; overflow-y: auto; }
-        .note-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
-        .note-item:hover { background: #f0f0f0; }
-        
-        /* Main Editor Area */
-        .editor { flex: 1; display: flex; flex-direction: column; }
-        textarea { width: 100%; flex: 1; font-size: 18px; padding: 15px; border-radius: 5px; border: 1px solid #ccc; resize: none; }
-        
-        .controls { margin-top: 15px; }
-        button { padding: 12px 20px; font-size: 16px; background: #316357; color: white; border: none; cursor: pointer; border-radius: 5px; margin-right: 5px;}
-        button:hover { background: #254d43; }
-        #save_status { font-size: 14px; color: #666; margin-bottom: 10px; }
+        body {
+            font-family: system-ui;
+            padding: 20px;
+            background: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+
+        #sidebar {
+            width: 250px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            overflow-y: auto;
+        }
+
+        .note-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .note-item:hover {
+            background: #f0f0f0;
+        }
+
+        .editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            font-size: 18px;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+        }
+
+        .controls {
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background: #316357;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+
+        button:hover {
+            background: #254d43;
+        }
+
+        #save_status {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>📝 Quick Note Taker</h1>
+
     <p id="save_status">Ready</p>
 
     <div class="container">
         <div id="sidebar">
             <h3 style="margin-top:0">My Notes</h3>
+
             <div id="note-list">
-                <p style="font-size: 12px; color: gray;">No saved notes.</p>
+                <p style="font-size: 12px; color: gray;">
+                    No saved notes.
+                </p>
             </div>
         </div>
 
         <div class="editor">
             <textarea id="note" placeholder="Start typing your note..."></textarea>
-            
+
             <div class="controls">
                 <button id="new-note">📄 New Note</button>
                 <button id="open-file">📂 Open File</button>
