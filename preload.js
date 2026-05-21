@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     getNotes: () => ipcRenderer.invoke('get-notes'),
     saveJSONNote: (note) => ipcRenderer.invoke('save-json-note', note),
-    deleteNote: (id) => ipcRenderer.invoke('delete-note', id)
+    deleteNote: (id) => ipcRenderer.invoke('delete-note', id),
+
+    getSettings: () => ipcRenderer.invoke('get-settings'),
+    saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings)
 });

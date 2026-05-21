@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Quick Note Taker</title>
-
     <style>
+        *{box-sizing: border-box; margin :0; padding :0;}
         body {
             font-family: system-ui;
             padding: 20px;
             background: #f4f4f4;
             display: flex;
             flex-direction: column;
-            height: 90vh;
+            height: 95vh;
         }
 
         .container {
             display: flex;
             flex: 1;
             gap: 20px;
+            margin-top: 10px;
         }
 
         #sidebar {
@@ -26,7 +27,14 @@
             padding: 15px;
             border-radius: 8px;
             border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #note-list {
+            flex: 1;
             overflow-y: auto;
+            margin-top: 10px;
         }
 
         .note-item {
@@ -34,10 +42,29 @@
             border-bottom: 1px solid #eee;
             cursor: pointer;
             font-size: 14px;
+            position: relative;
         }
 
         .note-item:hover {
             background: #f0f0f0;
+        }
+
+        .note-item.active {
+            background: #eef2f7;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            position: absolute;
+            right: 5px;
+            top: 8px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
         }
 
         .editor {
@@ -46,10 +73,16 @@
             flex-direction: column;
         }
 
+        #toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
         textarea {
             width: 100%;
             flex: 1;
-            font-size: 18px;
+            font-size: 16px;
             padding: 15px;
             border-radius: 5px;
             border: 1px solid #ccc;
@@ -57,18 +90,17 @@
         }
 
         .controls {
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         button {
-            padding: 12px 20px;
-            font-size: 16px;
+            padding: 8px 15px;
+            font-size: 14px;
             background: #316357;
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 5px;
-            margin-right: 5px;
         }
 
         button:hover {
@@ -78,34 +110,42 @@
         #save_status {
             font-size: 14px;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        #word-count {
+            font-size: 13px;
+            color: #555;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <h1>📝 Quick Note Taker</h1>
 
-    <p id="save_status">Ready</p>
-
     <div class="container">
         <div id="sidebar">
             <h3 style="margin-top:0">My Notes</h3>
-
-            <div id="note-list">
-                <p style="font-size: 12px; color: gray;">
-                    No saved notes.
-                </p>
-            </div>
+            <div id="note-list"></div>
         </div>
 
         <div class="editor">
-            <textarea id="note" placeholder="Start typing your note..."></textarea>
-
-            <div class="controls">
-                <button id="new-note">📄 New Note</button>
+            <p id="save_status">Ready</p>
+            
+            <div id="toolbar">
                 <button id="open-file">📂 Open File</button>
                 <button id="save">💾 Save Note</button>
                 <button id="save-as">💾 Save As</button>
+                <button id="font-increase">A+</button>
+                <button id="font-decrease">A-</button>
+            </div>
+
+            <textarea id="note" placeholder="Start typing your note..."></textarea>
+            
+            <p id="word-count">Words: 0 | Characters: 0</p>
+
+            <div class="controls">
+                <button id="new-note">📄 New Note</button>
             </div>
         </div>
     </div>

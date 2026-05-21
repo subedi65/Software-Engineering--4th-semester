@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const { Menutempelate } = require('./menutempelate');
 
 const notesPath = path.join(app.getPath('userData'), 'notes.json');
+const settingsPath = path.join(app.getPath('userData'), 'settings.json');
 
 app.disableHardwareAcceleration();
 
@@ -33,13 +34,22 @@ function createWindow() {
 
 function readNotes() {
     if (!fs.existsSync(notesPath)) return [];
-
     const data = fs.readFileSync(notesPath, 'utf8');
     return JSON.parse(data);
 }
 
 function writeNotes(notes) {
     fs.writeFileSync(notesPath, JSON.stringify(notes, null, 2));
+}
+
+function readSettings() {
+    if (!fs.existsSync(settingsPath)) return { fontSize: 16 };
+    const data = fs.readFileSync(settingsPath, 'utf8');
+    return JSON.parse(data);
+}
+
+function writeSettings(settings) {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 }
 
 app.whenReady().then(() => {
@@ -67,7 +77,6 @@ app.whenReady().then(() => {
 
     tray.on('double-click', () => {
         const win = BrowserWindow.getAllWindows()[0];
-
         if (win.isVisible()) {
             win.hide();
         } else {
@@ -90,19 +99,15 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('save-note', async (event, text, filePath) => {
     const targetPath = filePath || path.join(app.getPath('desktop'), 'quicknote.txt');
-
     fs.writeFileSync(targetPath, text, 'utf-8');
-
     return { success: true };
 });
 
 ipcMain.handle('load-note', async () => {
     const filePath = path.join(app.getPath('documents'), 'quicknote.txt');
-
     if (fs.existsSync(filePath)) {
         return fs.readFileSync(filePath, 'utf-8');
     }
-
     return '';
 });
 
@@ -173,7 +178,6 @@ ipcMain.handle('get-notes', async () => {
 
 ipcMain.handle('save-json-note', async (event, note) => {
     const notes = readNotes();
-
     const index = notes.findIndex(n => n.id === note.id);
 
     if (index === -1) {
@@ -186,20 +190,21 @@ ipcMain.handle('save-json-note', async (event, note) => {
     }
 
     writeNotes(notes);
-
-    return {
-        success: true
-    };
+    return { success: true };
 });
 
 ipcMain.handle('delete-note', async (event, id) => {
     let notes = readNotes();
-
     notes = notes.filter(n => n.id !== id);
-
     writeNotes(notes);
+    return { success: true };
+});
 
-    return {
-        success: true
-    };
+ipcMain.handle('get-settings', async () => {
+    return readSettings();
+});
+
+ipcMain.handle('save-settings', async (event, settings) => {
+    writeSettings(settings);
+    return { success: true };
 });
