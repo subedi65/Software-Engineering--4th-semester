@@ -1,0 +1,44 @@
+{
+  "appId": "com.quicknote.app",
+  "productName": "Quick Note Taker",
+  "directories": {
+    "output": "dist",
+    "buildResources": "."
+  },
+  "files": [
+    "main.js",
+    "preload.js",
+    "renderer.js",
+    "toolbar.js",
+    "menutempelate.js",
+    "index.html",
+    "toolbar.html",
+    "styles.css",
+    "notes.json",
+    "logo.png",
+    "node_modules/**/*"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Quick Note Taker"
+  }
+}

@@ -9,7 +9,7 @@
 | # | Full Name | Student ID | Core Contribution / Feature Responsibility |
 |---|---|---|---|
 | 1 | **Subedi Prabesh** | 202491216 | Technical Lead & Architecture Engineer <br> *Engineered the dynamic Multi-Window Pop-out Pipeline.* |
-| 2 | **Neupane Himmat** | 2024791145 | Core System Developer <br> *[Insert Core Feature Title Here]* |
+| 2 | **Neupane Himmat** | 2024791145 | Core System Developer <br> Text Formatting | Undo Redo | Insert Media |
 | 3 | **Roy Amit** | 20248911741 | Core System Developer <br> *[Insert Core Feature Title Here]* |
 | 4 | **Kc Shashank** | 2024591089 | Core System Developer <br> *[Insert Core Feature Title Here]* |
 | 5 | **Pariyar Prabin** | 2024991102 | Core System Developer <br> *[Insert Core Feature Title Here]* |
@@ -27,14 +27,18 @@ In our Electron application, opening a note in a separate window relies on a sec
 
 ---
 
-## 🔬 Deep-Dive Feature Spotlight: [Insert Member 2 Feature Title]
+## 🔬 Deep-Dive Feature Spotlight: [Note Text Formatting]
 *(Authored by Neupane Himmat — ID: 2024791145)*
 
 > [!NOTE]
 > **Feature Overview**
-> *[Member 2: Replace this text with a short summary sentence of your feature's technical impact or core system change.]*
+> *I have added text content formatting and styling capabilities to undo/redo and media insertion.*
 
-[Member 2: Paste your detailed engineering paragraph here explaining how your feature works behind the scenes, referencing specific backend or frontend mechanisms.]
+In the frontend, instead of using plain regular textarea, i have created my own custom textarea as (toolbar.html). This features enable user to add text in different format. I have given feature of making the text bold, and italic and underlined, these buttons format the text in different style making easy to highlight the important part in the note. Along with this, we have features to change the color of selected part of text or character which enables extra highlight the text paragraphs and notes, 
+ 
+ Then another feature is to insert the image in note editor, we can pick any images from the local storage and insert into our note,
+
+ finally, i have implemented  undo redo functions that helps to hide your mistakes. 
 
 ---
 

@@ -45,6 +45,7 @@ function createWindow() {
     win = new BrowserWindow({
         width: 1000,
         height: 650,
+        icon: path.join(__dirname, 'logo.png'), // App icon for taskbar and window
         backgroundColor: '#f4f4f4', // Matches the dynamic background color canvas wrapper
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -151,6 +152,7 @@ ipcMain.on('open-separate-window', (event, noteObject) => {
     let subWindow = new BrowserWindow({
         width: 700,
         height: 600,
+        icon: path.join(__dirname, 'logo.png'), // App icon for popout windows
         title: noteObject.title || 'Note Popout',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
