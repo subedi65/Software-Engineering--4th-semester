@@ -164,7 +164,7 @@ ipcMain.handle('load-note', async () => {
     return '';
 });
 
-ipcMain.handle('save-note-as', async (event, text) => {
+ipcMain.handle('save-as', async (event, text) => {
     const result = await dialog.showSaveDialog({
         defaultPath: 'mynote.txt',
         filters: [

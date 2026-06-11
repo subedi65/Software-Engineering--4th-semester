@@ -8,11 +8,11 @@
 
 | # | Full Name | Student ID | Core Contribution / Feature Responsibility |
 |---|---|---|---|
-| 1 | **Subedi Prabesh** | 202491216 | Technical Lead & Architecture Engineer <br> *Engineered the dynamic Multi-Window Pop-out Pipeline.* |
-| 2 | **Neupane Himmat** | 2024791145 | Core System Developer <br> *[Insert Core Feature Title Here]* |
-| 3 | **Roy Amit** | 20248911741 | Core System Developer <br> *[Insert Core Feature Title Here]* |
-| 4 | **Kc Shashank** | 2024591089 | Core System Developer <br> *[Insert Core Feature Title Here]* |
-| 5 | **Pariyar Prabin** | 2024991102 | Core System Developer <br> *[Insert Core Feature Title Here]* |
+| 1 | **Subedi Prabesh** | 202491216 | 
+| 2 | **Neupane Himmat** | 2024791145 | 
+| 3 | **Roy Amit** | 20248911741 | 
+| 4 | **Kc Shashank** | 2024591089 | 
+| 5 | **Pariyar Prabin** | 2024991102 | 
 
 ---
 
