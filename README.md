@@ -6,9 +6,9 @@
 ## 👥 Group Identification & Contribution Matrix
 **Group Number:** -2
 
-| # | Full Name | Student ID | Core Contribution / Feature Responsibility |
+| # | Full Name | Student ID | 
 |---|---|---|---|
-| 1 | **Subedi Prabesh** | 202491216 | 
+| 1 | **Subedi Prabesh** | 2024891216 | 
 | 2 | **Neupane Himmat** | 2024791145 | 
 | 3 | **Roy Amit** | 20248911741 | 
 | 4 | **Kc Shashank** | 2024591089 | 
