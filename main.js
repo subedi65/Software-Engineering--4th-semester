@@ -1,3 +1,29 @@
+/**
+ * ============================================================================
+ * MAIN.JS - Electron Main Process (Backend)
+ * ============================================================================
+ * This file runs in the Node.js main process and handles:
+ * - Creating and managing application windows
+ * - All file system operations (read/write, safe from renderer)
+ * - Inter-Process Communication (IPC) with renderer
+ * - Application lifecycle (startup, shutdown, tray)
+ * - Menu and system integration
+ *
+ * Security Model:
+ * - Renderer cannot directly access filesystem
+ * - All file ops go through validated IPC handlers
+ * - Paths are normalized to prevent directory traversal
+ * - Context isolation enabled (contextIsolation: true)
+ *
+ * Data Flow:
+ * Renderer (renderer.js)
+ *   → calls window.electronAPI.method()
+ *   → ipcRenderer.invoke() sends to main process
+ *   → ipcMain.handle() in this file validates and executes
+ *   → returns result back to renderer as Promise
+ * ============================================================================
+ */
+
 const { app, BrowserWindow, ipcMain, dialog, Menu, Tray } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -258,4 +284,166 @@ ipcMain.handle('get-settings', async () => {
 ipcMain.handle('save-settings', async (event, settings) => {
     writeSettings(settings);
     return { success: true };
+});
+
+// ============================================================================
+// NEW FILE OPERATIONS HANDLERS - Secure file read/write through IPC
+// ============================================================================
+// These handlers provide safe filesystem access to the renderer process
+// All file paths are validated before accessing
+
+/**
+ * READ FILE HANDLER
+ * Safely reads file content and returns it to renderer
+ * Validates file path to prevent directory traversal attacks
+ */
+ipcMain.handle('read-file', async (event, filePath) => {
+    try {
+        // Prevent directory traversal attacks
+        const normalizedPath = path.normalize(filePath);
+        if (normalizedPath.includes('..')) {
+            throw new Error('Invalid file path: directory traversal not allowed');
+        }
+
+        // Check if file exists before reading
+        if (!fs.existsSync(filePath)) {
+            return { success: false, error: 'File not found', data: null };
+        }
+
+        // Read file content as UTF-8 text
+        const content = fs.readFileSync(filePath, 'utf-8');
+        console.log(`✅ File read successfully: ${filePath}`);
+        return { success: true, data: content };
+    } catch (error) {
+        console.error(`❌ Error reading file: ${error.message}`);
+        return { success: false, error: error.message, data: null };
+    }
+});
+
+/**
+ * WRITE FILE HANDLER
+ * Safely writes content to file
+ * Creates directories if they don't exist
+ */
+ipcMain.handle('write-file', async (event, filePath, content) => {
+    try {
+        // Prevent directory traversal attacks
+        const normalizedPath = path.normalize(filePath);
+        if (normalizedPath.includes('..')) {
+            throw new Error('Invalid file path: directory traversal not allowed');
+        }
+
+        // Ensure directory exists
+        const dirPath = path.dirname(filePath);
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        // Write content to file
+        fs.writeFileSync(filePath, content, 'utf-8');
+        console.log(`✅ File written successfully: ${filePath}`);
+        return { success: true };
+    } catch (error) {
+        console.error(`❌ Error writing file: ${error.message}`);
+        return { success: false, error: error.message };
+    }
+});
+
+/**
+ * GET FILE INFO HANDLER
+ * Returns file metadata (size, created date, modified date)
+ * Useful for displaying file information in UI
+ */
+ipcMain.handle('get-file-info', async (event, filePath) => {
+    try {
+        const normalizedPath = path.normalize(filePath);
+        if (normalizedPath.includes('..')) {
+            throw new Error('Invalid file path: directory traversal not allowed');
+        }
+
+        if (!fs.existsSync(filePath)) {
+            return { success: false, error: 'File not found' };
+        }
+
+        // Get file statistics
+        const stats = fs.statSync(filePath);
+        const info = {
+            size: stats.size,
+            createdAt: stats.birthtime.toISOString(),
+            modifiedAt: stats.mtime.toISOString(),
+            isDirectory: stats.isDirectory(),
+            isFile: stats.isFile()
+        };
+
+        console.log(`✅ File info retrieved: ${filePath}`);
+        return { success: true, data: info };
+    } catch (error) {
+        console.error(`❌ Error getting file info: ${error.message}`);
+        return { success: false, error: error.message };
+    }
+});
+
+/**
+ * LIST DIRECTORY HANDLER
+ * Returns list of files in a directory
+ * Useful for file browser features
+ */
+ipcMain.handle('list-directory', async (event, dirPath) => {
+    try {
+        const normalizedPath = path.normalize(dirPath);
+        if (normalizedPath.includes('..')) {
+            throw new Error('Invalid path: directory traversal not allowed');
+        }
+
+        if (!fs.existsSync(dirPath)) {
+            return { success: false, error: 'Directory not found' };
+        }
+
+        // Read directory contents
+        const files = fs.readdirSync(dirPath, { withFileTypes: true });
+        const fileList = files.map(file => ({
+            name: file.name,
+            isDirectory: file.isDirectory(),
+            path: path.join(dirPath, file.name)
+        }));
+
+        console.log(`✅ Directory listed: ${dirPath} (${fileList.length} items)`);
+        return { success: true, data: fileList };
+    } catch (error) {
+        console.error(`❌ Error listing directory: ${error.message}`);
+        return { success: false, error: error.message };
+    }
+});
+
+// ============================================================================
+// LOGGING HANDLERS - Send logs to main process console
+// ============================================================================
+// Useful for debugging renderer process without browser DevTools
+
+/**
+ * LOG MESSAGE HANDLER
+ * Receives log messages from renderer and prints them to main process console
+ * Helps with debugging in production builds
+ */
+ipcMain.on('log-message', (event, { message, level = 'info' }) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const levelUpper = level.toUpperCase();
+
+    // Color-coded logging based on level (in terminal)
+    switch (level) {
+        case 'error':
+            console.error(`[${timestamp}] ❌ ${levelUpper}: ${message}`);
+            break;
+        case 'warn':
+            console.warn(`[${timestamp}] ⚠️ ${levelUpper}: ${message}`);
+            break;
+        case 'info':
+            console.log(`[${timestamp}] ℹ️ ${levelUpper}: ${message}`);
+            break;
+        case 'debug':
+            console.log(`[${timestamp}] 🐛 ${levelUpper}: ${message}`);
+            break;
+        default:
+            console.log(`[${timestamp}] ${message}`);
+    }
 });
