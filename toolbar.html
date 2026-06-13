@@ -1,0 +1,161 @@
+<div class="rich-toolbar"
+    style="display: flex; gap: 8px; flex-wrap: wrap; padding: 10px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color); border-radius: 12px 12px 0 0;">
+
+    <!-- Text Formatting -->
+    <button class="format-btn" data-command="bold" title="Bold"><b>B</b></button>
+    <button class="format-btn" data-command="italic" title="Italic"><i>I</i></button>
+    <button class="format-btn" data-command="underline" title="Underline"><u>U</u></button>
+    <button class="format-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
+
+    <div style="width: 1px; background: var(--border-color); margin: 0 5px;"></div> <!-- Divider -->
+
+    <!-- Alignment -->
+    <button class="format-btn" data-command="justifyLeft" title="Align Left">⬅️</button>
+    <button class="format-btn" data-command="justifyCenter" title="Align Center">↔️</button>
+    <button class="format-btn" data-command="justifyRight" title="Align Right">➡️</button>
+    <!-- <button id="redo" class="format-btn" title="Redo (Ctrl+Y)">↪️</button> -->
+    <!-- <button id="undo" class="format-btn"  title="Undo (Ctrl+Z)">↩️</button> -->
+    <div style="width: 1px; background: var(--border-color); margin: 0 5px;"></div> <!-- Divider -->
+
+    <!-- Colors -->
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <label style="font-size: 12px; color: var(--text-muted);">Text:</label>
+        <input type="color" id="text-color" class="color-picker" title="Text Color">
+    </div>
+
+    <!-- Insert Image -->
+    <div style="width: 1px; background: var(--border-color); margin: 0 5px;"></div>
+    <button id="insert-image-btn" title="Insert Image">🖼️ Insert Image</button>
+
+    <!-- Hidden File Input for Image Upload -->
+    <input type="file" id="image-upload" accept="image/png, image/jpeg, image/gif" style="display: none;">
+</div>
+
+<style>
+    /**
+     * TOOLBAR BUTTON STYLES
+     * Formatting buttons with hover and active states
+     */
+    .format-btn {
+        padding: 5px 10px;
+        font-size: 16px;
+        background: transparent;
+        color: var(--text-main);
+        border: 1px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-weight: 500;
+    }
+
+    /* Hover state - shows the button is clickable */
+    .format-btn:hover {
+        background: var(--item-hover);
+        border: 1px solid var(--border-color);
+        transform: translateY(-1px);
+    }
+
+    /* Active state - shows this formatting is currently applied */
+    .format-btn.active {
+        background: #316357;
+        color: white;
+        border: 1px solid #316357;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Focus state for keyboard navigation accessibility */
+    .format-btn:focus {
+        outline: 2px solid #316357;
+        outline-offset: 2px;
+    }
+
+    /**
+     * COLOR PICKER STYLES
+     * Input[type=color] for text color selection
+     */
+    .color-picker {
+        border: 1px solid var(--border-color);
+        width: 30px;
+        height: 30px;
+        padding: 2px;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: border-color 0.15s ease;
+    }
+
+    .color-picker:hover {
+        border-color: #316357;
+    }
+
+    /**
+     * RICH TOOLBAR CONTAINER
+     * Main toolbar wrapper with theme awareness
+     */
+    .rich-toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 10px;
+        background: var(--bg-panel, var(--container-bg));
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 12px 12px 0 0;
+    }
+
+    .rich-toolbar button {
+        background: var(--bg-app, transparent);
+        color: var(--text-main, var(--text-color));
+    }
+
+    /**
+     * DIVIDER STYLING
+     * Visual separators between button groups
+     */
+    .rich-toolbar > div[style*="width: 1px"] {
+        background: var(--border-color);
+        height: 24px;
+        margin: 0 5px;
+        opacity: 0.5;
+    }
+
+    /**
+     * INSERT IMAGE BUTTON
+     * Special styling for the image insert button
+     */
+    #insert-image-btn {
+        padding: 5px 10px;
+        font-size: 14px;
+        background: transparent;
+        color: var(--text-main);
+        border: 1px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    #insert-image-btn:hover {
+        background: var(--item-hover);
+        border: 1px solid var(--border-color);
+    }
+
+    /* Hidden file input - only shows when clicked */
+    #image-upload {
+        display: none;
+    }
+
+    /**
+     * RESPONSIVE DESIGN
+     * Stack toolbar on smaller screens
+     */
+    @media (max-width: 768px) {
+        .rich-toolbar {
+            gap: 6px;
+            padding: 8px;
+        }
+
+        .format-btn {
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+    }
+</style>
