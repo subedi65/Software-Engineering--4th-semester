@@ -13,5 +13,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getSettings: () => ipcRenderer.invoke('get-settings'),
     saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
     openSeparateWindow: (noteObject) => ipcRenderer.send('open-separate-window', noteObject),
-    getPopoutData: () => ipcRenderer.invoke('get-popout-data')
+    getPopoutData: () => ipcRenderer.invoke('get-popout-data'),
+    // Listen for the focus event from main.js
+    onWindowFocused: (callback) => ipcRenderer.on('window-focused', callback),
+    
+    // Read the current system clipboard
+    readClipboard: () => clipboard.readText()
 });
