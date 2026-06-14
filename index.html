@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -70,7 +70,7 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        #search-bar:focus, #category-filter:focus, #note-category-select:focus {
+        #search-bar:focus, #category-filter:focus, #note-category-select:focus, #dictation-lang:focus {
             border-color: #316357;
         }
 
@@ -112,7 +112,6 @@
             font-weight: bold;
         }
 
-        /* Color-Coded Category Badges */
         .category-badge {
             display: inline-block;
             font-size: 11px;
@@ -129,7 +128,6 @@
         .badge-ideas { background: #f5a623; }
         .badge-todo { background: #2ecc71; }
 
-        /* --- Action Controls Row on Note Item --- */
         .note-actions {
             position: absolute;
             right: 5px;
@@ -149,33 +147,18 @@
             transition: background 0.2s, transform 0.2s;
         }
 
-        /* Popout Button Style (Styled explicitly to match the Delete layout button template) */
-        .popout-btn {
-            background: #4a90e2;
-        }
-        .popout-btn:hover {
-            background: #357abd;
-        }
+        .popout-btn { background: #4a90e2; }
+        .popout-btn:hover { background: #357abd; }
 
-        /* Pin Button Style */
-        .pin-btn {
-            background: #7f8c8d;
-        }
-        .pin-btn:hover {
-            background: #626d6e;
-        }
+        .pin-btn { background: #7f8c8d; }
+        .pin-btn:hover { background: #626d6e; }
         .note-item.pinned .pin-btn {
             background: #316357;
             transform: rotate(-45deg);
         }
 
-        /* Delete Button Style */
-        .delete-btn {
-            background: #ff4d4d;
-        }
-        .delete-btn:hover {
-            background: #e60000;
-        }
+        .delete-btn { background: #ff4d4d; }
+        .delete-btn:hover { background: #e60000; }
 
         .note-item.pinned {
             border-left: 4px solid #316357;
@@ -204,7 +187,7 @@
             font-size: 14px;
         }
 
-        #note-category-select {
+        #note-category-select, #dictation-lang {
             padding: 6px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
@@ -227,9 +210,7 @@
             transition: background 0.2s, color 0.2s, border-color 0.2s;
         }
 
-        .controls {
-            margin-top: 10px;
-        }
+        .controls { margin-top: 10px; }
 
         button {
             padding: 8px 15px;
@@ -241,10 +222,7 @@
             border-radius: 5px;
             transition: background 0.2s;
         }
-
-        button:hover {
-            background: #254d43;
-        }
+        button:hover { background: #254d43; }
 
         #save_status {
             font-size: 14px;
@@ -260,20 +238,87 @@
             margin-top: 5px;
         }
 
-        button#theme-toggle {
-            background: #555555;
+        button#theme-toggle { background: #555555; }
+        button#theme-toggle:hover { background: #444444; }
+        body.dark-theme button#theme-toggle { background: #f4f4f4; color: #333333; }
+        body.dark-theme button#theme-toggle:hover { background: #e0e0e0; }
+
+        /* Voice Layout CSS Configurations */
+        button#dictation-toggle { background: #2980b9; }
+        button#dictation-toggle:hover { background: #1f618d; }
+        button#dictation-toggle.recording { background: #e74c3c !important; }
+
+        button#trash-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            font-size: 20px;
+            background: #c0392b;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 60;
         }
-        button#theme-toggle:hover {
-            background: #444444;
+        button#trash-toggle:hover { background: #922b21; }
+
+        .trash-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 90px;
+            width: 300px;
+            max-height: 360px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.2);
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            z-index: 55;
         }
-        
-        body.dark-theme button#theme-toggle {
-            background: #f4f4f4;
-            color: #333333;
+        .trash-panel.visible { display: flex; }
+        .trash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
         }
-        body.dark-theme button#theme-toggle:hover {
-            background: #e0e0e0;
+        .trash-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 220px;
         }
+        .trash-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--textarea-bg);
+        }
+        .trash-item-title { font-size: 13px; font-weight: 600; }
+        .trash-item-actions { display: flex; gap: 4px; align-items: center; }
+        .trash-item-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+        .trash-item-actions button.restore { background: #27ae60; }
+        .trash-item-actions button.delete { background: #c0392b; }
+        .trash-footer { display: flex; justify-content: flex-end; margin-top: 8px; }
+        button#empty-trash { background: #a93226; }
     </style>
 </head>
 <body>
@@ -307,6 +352,12 @@
                 <button id="font-decrease">A-</button>
                 <button id="theme-toggle" class="action-btn">🌓 Toggle Theme</button>
 
+                <button id="dictation-toggle">🎙️ Start Dictation</button>
+                <select id="dictation-lang" title="Select Voice Input Language">
+                    <option value="en-US">🇺🇸 English</option>
+                    <option value="ko-KR">🇰🇷 한국어</option>
+                </select>
+
                 <div class="category-selector-container">
                     <label for="note-category-select">Tag:</label>
                     <select id="note-category-select">
@@ -320,12 +371,25 @@
             </div>
 
             <textarea id="note" placeholder="Start typing your note..."></textarea>
-            
             <p id="word-count">Words: 0 | Characters: 0</p>
 
             <div class="controls">
                 <button id="new-note">📄 New Note</button>
             </div>
+        </div>
+    </div>
+
+    <button id="trash-toggle" title="Open Trash Bin">🗑️</button>
+    <div id="trash-panel" class="trash-panel">
+        <div class="trash-header">
+            <span>Trash Bin</span>
+            <span id="trash-count">0 items</span>
+        </div>
+        <div id="trash-list" class="trash-list">
+            <p style="font-size:12px;color:gray;">Trash is empty.</p>
+        </div>
+        <div class="trash-footer">
+            <button id="empty-trash">Empty Trash</button>
         </div>
     </div>
 
