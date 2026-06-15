@@ -35,6 +35,9 @@ In our Electron application, opening a note in a separate window relies on a sec
 > *I have added text content formatting and styling capabilities to undo/redo and media insertion.*
 
 In the frontend, instead of using plain regular textarea, i have created my own custom textarea as (toolbar.html). This features enable user to add text in different format. I have given feature of making the text bold, and italic and underlined, these buttons format the text in different style making easy to highlight the important part in the note. Along with this, we have features to change the color of selected part of text or character which enables extra highlight the text paragraphs and notes, 
+The game changer of this modification is textarea.innerHTML = `......`
+        document.getElementById('toolbar-container').innerHTML = toolbarHtml;
+that's it.
  
  Then another feature is to insert the image in note editor, we can pick any images from the local storage and insert into our note,
 
@@ -46,10 +49,10 @@ In the frontend, instead of using plain regular textarea, i have created my own 
 *(Authored by Roy Amit — ID: 20248911741)*
 
 > [!NOTE]
-> **Feature Overview**
-> *[Member 3: Replace this text with a short summary sentence of your feature's technical impact or core system change.]*
+> **Favourite**
+> *Add notes into favourite list.*
 
-[Member 3: Paste your detailed engineering paragraph here explaining how your feature works behind the scenes, referencing specific backend or frontend mechanisms.]
+I have added the featurs to add the notes into favourites . User can quickly open and read the favouriate note without searching in meshed list of notes.
 
 ---
 

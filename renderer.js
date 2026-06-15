@@ -41,7 +41,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     let currentFontSize = 16;          // Tracks current font size for A+/A- buttons
 
     // ========== CATEGORY LABEL MAPPINGS ==========
-    const categoryLabels = {
+    const categoryLabels  = {
         none: 'Uncategorized',
         work: '💼 Work',
         personal: '🏠 Personal',
