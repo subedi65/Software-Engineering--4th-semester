@@ -70,6 +70,41 @@ function focusRichEditor() {
 }
 
 /**
+ * Inserts text at the current cursor position in the rich editor
+ * Used by voice dictation to insert transcribed text
+ */
+function insertTextAtCursor(text) {
+    if (!richEditor) {
+        console.warn('⚠️ Rich editor element not found');
+        return;
+    }
+
+    richEditor.focus();
+    const selection = window.getSelection();
+
+    if (selection.rangeCount === 0) {
+        // No selection, append to end
+        richEditor.innerHTML += text;
+        return;
+    }
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+
+    const textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+
+    // Move cursor after inserted text
+    range.setStartAfter(textNode);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // Trigger contentChanged event for auto-save
+    document.dispatchEvent(new CustomEvent('contentChanged'));
+}
+
+/**
  * Initialize the rich text toolbar functionality
  */
 function initializeRichText() {
