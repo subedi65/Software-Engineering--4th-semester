@@ -9,6 +9,8 @@
  * - Auto-save functionality
  * - Theme switching
  * - UI state management
+ * - Trash / soft-delete system
+ * - Voice dictation
  *
  * Communication Pattern:
  * Renderer → Main: ipcRenderer.send() or .invoke()
@@ -35,13 +37,26 @@ window.addEventListener('DOMContentLoaded', async () => {
     const favoriteBtn = document.getElementById('favorite-btn');
     const showFavoriteBtn = document.getElementById('show-favorite-btn');
 
+    // Trash elements (from latest-amit-roy)
+    const trashToggleBtn = document.getElementById('trash-toggle');
+    const trashPanel = document.getElementById('trash-panel');
+    const trashList = document.getElementById('trash-list');
+    const trashCountEl = document.getElementById('trash-count');
+
+    // Voice dictation elements (from latest-amit-roy)
+    const dictationToggleBtn = document.getElementById('dictation-toggle');
+    const dictationLangSelect = document.getElementById('dictation-lang');
+
     // ========== APPLICATION STATE VARIABLES ==========
     let currentNoteId = null;          // Tracks which note is currently open
     let lastSavedText = '';            // Stores the last saved content to detect changes
     let currentFontSize = 16;          // Tracks current font size for A+/A- buttons
+    let isDictating = false;
+    let recognition = null;
+    let debounceTimer = null;
 
     // ========== CATEGORY LABEL MAPPINGS ==========
-    const categoryLabels  = {
+    const categoryLabels = {
         none: 'Uncategorized',
         work: '💼 Work',
         personal: '🏠 Personal',
@@ -72,8 +87,143 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.warn('⚠️ Warning: Some helper functions from toolbar.js are not available');
     }
 
+    function updateWordCount() {
+        const text = getRichEditorPlainText();
+        const characters = text.length;
+        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+        document.getElementById('word-count').textContent = `Words: ${words} | Characters: ${characters}`;
+    }
+
     /**
-     * === 1. PERSISTENT THEME SHIFT CONTROLLER ===
+     * === DYNAMIC EDITOR FONT SIZE MUTATOR ===
+     */
+    function applyFontSize(size) {
+        currentFontSize = Math.min(32, Math.max(10, size));
+        richEditor.style.fontSize = `${currentFontSize}px`;
+        console.log(`🔤 Font size changed to: ${currentFontSize}px`);
+    }
+
+    /**
+     * === SAFETY FUNCTION: Confirm Before Discarding Unsaved Text ===
+     */
+    async function confirmDiscardIfUnsaved() {
+        const currentText = getRichEditorPlainText();
+        if (currentText !== lastSavedText) {
+            const result = await window.electronAPI.newNote();
+            return result.confirmed;
+        }
+        return true;
+    }
+
+    // ==========================================
+    // SECURE SPEECH DICTATION RECOGNITION PIPELINE (from latest-amit-roy)
+    // ==========================================
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        if (dictationToggleBtn) {
+            dictationToggleBtn.disabled = true;
+            dictationToggleBtn.textContent = "🎙️ Unsupported";
+        }
+    } else {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false; // Blocks fragmented inputs from triggering collision crashes
+
+        recognition.onstart = () => {
+            isDictating = true;
+            if (dictationToggleBtn) {
+                dictationToggleBtn.textContent = "🛑 Stop Listening";
+                dictationToggleBtn.classList.add('recording');
+            }
+            statusEl.textContent = `Listening in ${dictationLangSelect.value === 'en-US' ? 'English' : '한국어'}...`;
+        };
+
+        recognition.onresult = (event) => {
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                }
+            }
+
+            if (finalTranscript !== '') {
+                // Insert dictated text at the current cursor position in the rich editor
+                if (typeof insertTextAtCursor === 'function') {
+                    insertTextAtCursor(finalTranscript + ' ');
+                } else {
+                    // Fallback: append to end of rich editor content
+                    richEditor.focus();
+                    document.execCommand('insertText', false, finalTranscript + ' ');
+                }
+
+                updateWordCount();
+                statusEl.textContent = 'Text dictated successfully.';
+
+                // Triggers auto-save debouncer sequence asynchronously
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(autoSave, 5000);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.log("Speech Engine Error Caught:", event.error);
+            if (event.error === 'no-speech') return; // Silence closures are handled safely by onend
+
+            if (event.error === 'not-allowed') {
+                statusEl.textContent = "Mic access blocked. Check your machine permissions settings.";
+                stopDictation();
+            }
+        };
+
+        // SELF-HEALING STABILIZER LOOP: Restarts hardware capture if silence forces window closing
+        recognition.onend = () => {
+            if (isDictating) {
+                setTimeout(() => {
+                    if (isDictating) {
+                        try { recognition.start(); } catch (e) { console.log("Auto-restart collision prevented safely."); }
+                    }
+                }, 400); // 400ms platform clearance buffer window
+            }
+        };
+    }
+
+    function startDictation() {
+        if (!recognition) return;
+        recognition.lang = dictationLangSelect.value;
+        try {
+            recognition.start();
+        } catch (err) {
+            console.log("Bypassed simultaneous collision:", err);
+            isDictating = true;
+            dictationToggleBtn.textContent = "🛑 Stop Listening";
+            dictationToggleBtn.classList.add('recording');
+        }
+    }
+
+    function stopDictation() {
+        isDictating = false;
+        if (recognition) { try { recognition.stop(); } catch (e) {} }
+        if (dictationToggleBtn) {
+            dictationToggleBtn.textContent = "🎙️ Start Dictation";
+            dictationToggleBtn.classList.remove('recording');
+        }
+        statusEl.textContent = "Dictation stopped.";
+    }
+
+    if (dictationToggleBtn) {
+        dictationToggleBtn.addEventListener('click', () => {
+            if (!isDictating) startDictation(); else stopDictation();
+        });
+    }
+
+    if (dictationLangSelect) {
+        dictationLangSelect.addEventListener('change', () => {
+            if (isDictating) { stopDictation(); setTimeout(startDictation, 300); }
+        });
+    }
+
+    /**
+     * === PERSISTENT THEME SHIFT CONTROLLER ===
      */
     const savedTheme = localStorage.getItem('app-theme') || 'light';
     if (savedTheme === 'dark') {
@@ -92,10 +242,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     /**
-     * === 2. FAVORITE BUTTONS CONTROLLER (FIXED RICH-EDITOR INTEGRATION) ===
+     * === FAVORITE BUTTONS CONTROLLER ===
      */
     favoriteBtn?.addEventListener('click', () => {
-        const content = getRichEditorContent(); // Using Rich Editor Content instead of textarea
+        const content = getRichEditorContent();
 
         if (!content.trim() || content === '<br>') {
             alert('Please write a note first!');
@@ -114,41 +264,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        setRichEditorContent(favorite); // Loading content into Rich Editor
+        setRichEditorContent(favorite);
         updateWordCount();
         statusEl.textContent = '⭐ Favorite note loaded';
     });
 
-    function updateWordCount() {
-        const text = getRichEditorPlainText();
-        const characters = text.length;
-        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-        document.getElementById('word-count').textContent = `Words: ${words} | Characters: ${characters}`;
-    }
-
     /**
-     * === 3. DYNAMIC EDITOR FONT SIZE MUTATOR ===
-     */
-    function applyFontSize(size) {
-        currentFontSize = Math.min(32, Math.max(10, size));
-        richEditor.style.fontSize = `${currentFontSize}px`;
-        console.log(`🔤 Font size changed to: ${currentFontSize}px`);
-    }
-
-    /**
-     * === SAFETY FUNCTION: Confirm Before Discarding Unsaved Text ===
-     */
-    async function confirmDiscardIfUnsaved() {
-        const currentText = getRichEditorPlainText();
-        if (currentText !== lastSavedText) {
-            const result = await window.electronAPI.newNote();
-            return result.confirmed;
-        }
-        return true; 
-    }
-
-    /**
-     * === 4. REAL-TIME NOTE LIST RENDERER ===
+     * === REAL-TIME NOTE LIST RENDERER ===
+     * (filters out trashed notes; non-trashed notes only)
      */
     async function renderNotes(searchQuery = '', activeCategory = 'all') {
         console.log('📋 renderNotes called with search:', searchQuery, 'category:', activeCategory);
@@ -171,6 +294,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         const query = searchQuery.trim().toLowerCase();
 
         const filteredNotes = notesArray.filter(note => {
+            if (note.isTrashed) return false; // exclude trashed notes from main list
+
             const matchesTitle = note.title ? note.title.toLowerCase().includes(query) : false;
             const matchesContent = note.content ? note.content.toLowerCase().includes(query) : false;
             const matchesText = matchesTitle || matchesContent;
@@ -249,14 +374,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             // Protected Sidebar Navigation Click Handler
             div.addEventListener('click', async (e) => {
-                if (e.target.closest('.note-actions')) return; 
-                if (note.id === currentNoteId) return; 
+                if (e.target.closest('.note-actions')) return;
+                if (note.id === currentNoteId) return;
 
                 const allowed = await confirmDiscardIfUnsaved();
-                if (!allowed) return; 
+                if (!allowed) return;
 
                 currentNoteId = note.id;
-                setRichEditorContent(note.content); 
+                setRichEditorContent(note.content);
                 lastSavedText = note.content;
                 noteCategorySelect.value = note.category || 'none';
 
@@ -265,22 +390,31 @@ window.addEventListener('DOMContentLoaded', async () => {
                 await renderNotes(searchBar.value, categoryFilter.value);
             });
 
-            // Note Deletion Flow
+            // Note Deletion Flow — SOFT DELETE (moves to Trash, from latest-amit-roy)
             const delBtn = div.querySelector('.delete-btn');
             delBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                const result = await window.electronAPI.newNote(); 
+                const result = await window.electronAPI.newNote();
                 if (result.confirmed) {
-                    await window.electronAPI.deleteNote(note.id);
+                    await window.electronAPI.saveJSONNote({
+                        id: note.id,
+                        isTrashed: true,
+                        updatedAt: new Date().toISOString()
+                    });
+
                     if (currentNoteId === note.id) {
                         currentNoteId = null;
-                        clearRichEditor(); 
+                        clearRichEditor();
                         lastSavedText = '';
                         noteCategorySelect.value = 'none';
-                        statusEl.textContent = 'Active note destroyed.';
+                        statusEl.textContent = 'Moved to Trash.';
                         updateWordCount();
+                    } else {
+                        statusEl.textContent = 'Moved to Trash.';
                     }
+
                     await renderNotes(searchBar.value, categoryFilter.value);
+                    await renderTrash();
                 }
             });
 
@@ -290,7 +424,76 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.log('✅ renderNotes completed:', filteredNotes.length, 'notes displayed');
     }
 
-    // --- 5. ATTACH SEARCH INPUT AND CATEGORY FILTER EVENT LISTENERS ---
+    /**
+     * === TRASH PANEL RENDERER (from latest-amit-roy) ===
+     */
+    async function renderTrash() {
+        if (!trashPanel || !trashList || !trashCountEl) return;
+        const notesArray = await window.electronAPI.getNotes();
+        const trashedNotes = notesArray.filter(note => note.isTrashed);
+        trashCountEl.textContent = `${trashedNotes.length} item${trashedNotes.length === 1 ? '' : 's'}`;
+        trashList.innerHTML = '';
+
+        if (trashedNotes.length === 0) {
+            trashList.innerHTML = `<p style="font-size:12px;color:gray;">Trash is empty.</p>`;
+            return;
+        }
+
+        trashedNotes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        trashedNotes.forEach(note => {
+            const item = document.createElement('div');
+            item.className = 'trash-item';
+            item.innerHTML = `
+                <div>
+                    <div class="trash-item-title">${note.title || 'Untitled Note'}</div>
+                    <div style="font-size:11px;color:#666;margin-top:4px;">${new Date(note.updatedAt).toLocaleString()}</div>
+                </div>
+                <div class="trash-item-actions">
+                    <button class="restore">Restore</button>
+                    <button class="delete">Delete</button>
+                </div>
+            `;
+            item.querySelector('.restore').addEventListener('click', async () => {
+                await window.electronAPI.saveJSONNote({ ...note, isTrashed: false, updatedAt: new Date().toISOString() });
+                statusEl.textContent = 'Note restored from Trash.';
+                await renderNotes(searchBar.value, categoryFilter.value);
+                await renderTrash();
+            });
+            item.querySelector('.delete').addEventListener('click', async () => {
+                if ((await window.electronAPI.newNote()).confirmed) {
+                    await window.electronAPI.deleteNote(note.id); // permanent / hard delete
+                    statusEl.textContent = 'Note permanently deleted.';
+                    await renderTrash();
+                }
+            });
+            trashList.appendChild(item);
+        });
+    }
+
+    if (trashToggleBtn) {
+        trashToggleBtn.addEventListener('click', async () => {
+            trashPanel.classList.toggle('visible');
+            if (trashPanel.classList.contains('visible')) {
+                await renderTrash();
+            }
+        });
+    }
+
+    const emptyTrashBtn = document.getElementById('empty-trash');
+    if (emptyTrashBtn) {
+        emptyTrashBtn.addEventListener('click', async () => {
+            const notesArray = await window.electronAPI.getNotes();
+            const trashedNotes = notesArray.filter(note => note.isTrashed);
+            if (trashedNotes.length === 0) return;
+            if ((await window.electronAPI.newNote()).confirmed) {
+                await Promise.all(trashedNotes.map(note => window.electronAPI.deleteNote(note.id)));
+                statusEl.textContent = 'Trash emptied.';
+                await renderTrash();
+            }
+        });
+    }
+
+    // --- ATTACH SEARCH INPUT AND CATEGORY FILTER EVENT LISTENERS ---
     searchBar.addEventListener('input', () => {
         renderNotes(searchBar.value, categoryFilter.value);
     });
@@ -313,7 +516,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             id: currentNoteId,
             category: noteCategorySelect.value,
             title: plainText.trim().split('\n')[0].substring(0, 20) || 'Untitled Note',
-            content: htmlContent, 
+            content: htmlContent,
             isPinned: wasPinned,
             updatedAt: new Date().toISOString()
         };
@@ -345,14 +548,46 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- 6. APP PLATFORM SYSTEM MENUBAR SYNC ROUTINES ---
+    /**
+     * === EXPORT TO PDF BUTTON HANDLER ===
+     */
+    const exportPdfBtn = document.getElementById('export-pdf');
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', async () => {
+            try {
+                const noteTitle = getRichEditorPlainText().trim().split('\n')[0].substring(0, 50) || 'Untitled Note';
+                const noteContent = getRichEditorPlainText();
+
+                if (!noteContent.trim()) {
+                    alert('Please write a note first before exporting to PDF!');
+                    return;
+                }
+
+                statusEl.textContent = 'Exporting to PDF...';
+                const result = await window.electronAPI.exportPdf(noteTitle, noteContent);
+
+                if (result.success) {
+                    statusEl.textContent = `✅ PDF exported to Documents: ${noteTitle}.pdf`;
+                    console.log('✅ PDF exported:', result.filePath);
+                } else {
+                    statusEl.textContent = `❌ PDF export failed: ${result.error}`;
+                    console.error('❌ PDF export error:', result.error);
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ Error exporting PDF';
+                console.error('❌ Error exporting PDF:', error);
+            }
+        });
+    }
+
+    // --- APP PLATFORM SYSTEM MENUBAR SYNC ROUTINES ---
     window.electronAPI.onMenuAction('menu-new-note', () => { newNoteBtn.click(); });
     window.electronAPI.onMenuAction('menu-open-file', () => { openBtn.click(); });
     window.electronAPI.onMenuAction('menu-save', () => { saveBtn.click(); });
     window.electronAPI.onMenuAction('menu-save-as', () => { saveAsBtn.click(); });
 
     /**
-     * === 7. CORE UI CONTROL ACTION CLICKS ===
+     * === CORE UI CONTROL ACTION CLICKS ===
      */
     saveBtn.addEventListener('click', async () => {
         try {
@@ -378,7 +613,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             const noteObject = {
                 id: currentNoteId,
                 title: getRichEditorPlainText().trim().split('\n')[0].substring(0, 20) || 'Untitled Note',
-                content: text, 
+                content: text,
                 isPinned: wasPinned,
                 category: noteCategorySelect.value,
                 updatedAt: new Date().toISOString()
@@ -388,7 +623,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             await window.electronAPI.saveJSONNote(noteObject);
             console.log('✅ JSON saved');
 
-            lastSavedText = text; 
+            lastSavedText = text;
             statusEl.textContent = 'Note saved successfully (TXT & JSON)';
             await renderNotes(searchBar.value, categoryFilter.value);
             console.log('✅ Note saved:', noteObject.title);
@@ -409,7 +644,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             if (result.success) {
                 currentNoteId = result.filePath;
-                const fileName = result.filePath.split('\\').pop().split('/').pop(); 
+                const fileName = result.filePath.split('\\').pop().split('/').pop();
                 console.log('💾 Saving as:', fileName);
 
                 const noteObject = {
@@ -438,28 +673,28 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     newNoteBtn.addEventListener('click', async () => {
         const allowed = await confirmDiscardIfUnsaved();
-        if (!allowed) return; 
+        if (!allowed) return;
 
-        clearRichEditor(); 
+        clearRichEditor();
         lastSavedText = '';
-        currentNoteId = Date.now().toString(); 
+        currentNoteId = Date.now().toString();
         noteCategorySelect.value = 'none';
         statusEl.textContent = 'New blank note initialized.';
         updateWordCount();
         await renderNotes(searchBar.value, categoryFilter.value);
-        focusRichEditor(); 
+        focusRichEditor();
         console.log('📝 New note created');
     });
 
     openBtn.addEventListener('click', async () => {
         const allowed = await confirmDiscardIfUnsaved();
-        if (!allowed) return; 
+        if (!allowed) return;
 
         const result = await window.electronAPI.openFile();
         if (result.success) {
             setRichEditorContent(result.content);
             lastSavedText = result.content;
-            currentNoteId = result.filePath; 
+            currentNoteId = result.filePath;
 
             noteCategorySelect.value = 'none';
             const fileName = result.filePath.split('\\').pop().split('/').pop();
@@ -484,7 +719,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     /**
-     * === 8. AUTOMATED BACKSTAGE AUTO-SAVE DEBOUNCER SYSTEM ===
+     * === AUTOMATED BACKSTAGE AUTO-SAVE DEBOUNCER SYSTEM ===
      */
     async function autoSave() {
         const currentContent = getRichEditorContent();
@@ -509,7 +744,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             };
 
             await window.electronAPI.saveJSONNote(noteObject);
-            lastSavedText = currentContent; 
+            lastSavedText = currentContent;
             statusEl.textContent = `Auto-saved at ${new Date().toLocaleTimeString()}`;
             await renderNotes(searchBar.value, categoryFilter.value);
         } catch (err) {
@@ -517,8 +752,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.error('❌ Auto-save error:', err);
         }
     }
-
-    let debounceTimer;
 
     richEditor.addEventListener('input', () => {
         statusEl.textContent = 'Changes detected...';
@@ -533,7 +766,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     /**
-     * === 9. ACCESSIBILITY FONT SIZE HOOKS ===
+     * === ACCESSIBILITY FONT SIZE HOOKS ===
      */
     fontIncreaseBtn.addEventListener('click', async () => {
         applyFontSize(currentFontSize + 2);
@@ -546,7 +779,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     /**
-     * === 10. INITIAL HYDRATION BOOT ===
+     * === INITIAL HYDRATION BOOT ===
      */
     const settings = await window.electronAPI.getSettings();
     applyFontSize(settings.fontSize || 16);

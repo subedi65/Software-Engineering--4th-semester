@@ -20,6 +20,11 @@
             --textarea-bg: white;
             --item-hover: #f0f0f0;
             --item-active: #eef2f7;
+            /* Aliases needed by toolbar.html / toolbar.js styling */
+            --bg-panel: var(--container-bg);
+            --bg-app: var(--bg-color);
+            --text-main: var(--text-color);
+            --text-muted: #777777;
         }
 
         body.dark-theme {
@@ -30,6 +35,11 @@
             --textarea-bg: #1c1e1f;
             --item-hover: #2d3134;
             --item-active: #373c40;
+            /* Aliases needed by toolbar.html / toolbar.js styling */
+            --bg-panel: var(--container-bg);
+            --bg-app: var(--bg-color);
+            --text-main: var(--text-color);
+            --text-muted: #9a9a9a;
         }
 
         body {
@@ -50,7 +60,8 @@
             margin-top: 10px;
             overflow: hidden;
         }
-           .toolbar {
+
+        .toolbar {
             display: flex;
             gap: 10px;
             margin-top: 20px;
@@ -102,7 +113,8 @@
 
         #search-bar:focus,
         #category-filter:focus,
-        #note-category-select:focus {
+        #note-category-select:focus,
+        #dictation-lang:focus {
             border-color: #316357;
         }
 
@@ -196,7 +208,7 @@
             transition: background 0.2s, transform 0.2s;
         }
 
-        /* Popout Button Style (Styled explicitly to match the Delete layout button template) */
+        /* Popout Button Style */
         .popout-btn {
             background: #4a90e2;
         }
@@ -255,7 +267,8 @@
             font-size: 14px;
         }
 
-        #note-category-select {
+        #note-category-select,
+        #dictation-lang {
             padding: 6px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
@@ -338,7 +351,8 @@
             background: #254d43;
         }
 
-        #save_status {
+        #save_status,
+        #save-status {
             font-size: 14px;
             color: var(--text-color);
             opacity: 0.8;
@@ -367,6 +381,19 @@
 
         body.dark-theme button#theme-toggle:hover {
             background: #e0e0e0;
+        }
+
+        /* Voice Dictation Button Styling */
+        button#dictation-toggle {
+            background: #2980b9;
+        }
+
+        button#dictation-toggle:hover {
+            background: #1f618d;
+        }
+
+        button#dictation-toggle.recording {
+            background: #e74c3c !important;
         }
 
         /* ===== ENHANCED RICH EDITOR STYLING ===== */
@@ -415,7 +442,7 @@
         }
 
         /* Status indicators */
-        #save_status {
+        #save-status {
             display: inline-block;
             min-height: 20px;
             animation: fadeInOut 3s ease-in-out infinite;
@@ -427,15 +454,88 @@
         }
 
         /* Status message animations */
-        #save_status.saved {
+        #save-status.saved {
             color: #2ecc71;
             animation: none;
         }
 
-        #save_status.error {
+        #save-status.error {
             color: #ff4d4d;
             animation: none;
         }
+
+        /* ===== TRASH BIN UI (grafted from old branch) ===== */
+        button#trash-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            font-size: 20px;
+            background: #c0392b;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 60;
+        }
+        button#trash-toggle:hover { background: #922b21; }
+
+        .trash-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 90px;
+            width: 300px;
+            max-height: 360px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.2);
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            z-index: 55;
+        }
+        .trash-panel.visible { display: flex; }
+        .trash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .trash-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 220px;
+        }
+        .trash-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--textarea-bg);
+        }
+        .trash-item-title { font-size: 13px; font-weight: 600; }
+        .trash-item-actions { display: flex; gap: 4px; align-items: center; }
+        .trash-item-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+        .trash-item-actions button.restore { background: #27ae60; }
+        .trash-item-actions button.delete { background: #c0392b; }
+        .trash-footer { display: flex; justify-content: flex-end; margin-top: 8px; }
+        button#empty-trash { background: #a93226; }
     </style>
 </head>
 
@@ -462,13 +562,12 @@
         <div class="editor">
             <!-- Editor Top Header (Status + Undo/Redo) -->
             <div class="editor-header">
-                
                 <div class="undo-redo-buttons">
                     <button id="undo" title="Undo (Ctrl+Z)">↩️</button>
                     <button id="redo" title="Redo (Ctrl+Y)">↪️</button>
                 </div>
             </div>
-            
+
             <div id="toolbar">
                 <button id="open-file">📂 Open File</button>
                 <button id="save">💾 Save Note</button>
@@ -477,7 +576,15 @@
                 <button id="font-increase">A+</button>
                 <button id="font-decrease">A-</button>
                 <button id="theme-toggle" class="action-btn">🌓 Toggle Theme</button>
-                
+
+                <button id="dictation-toggle">🎙️ Start Dictation</button>
+                <select id="dictation-lang" title="Select Voice Input Language">
+                    <option value="en-US">🇺🇸 English</option>
+                    <option value="ko-KR">🇰🇷 한국어</option>
+                </select>
+
+                <button id="export-pdf" style="margin-left: auto;">📄 Export as PDF</button>
+
                 <div class="category-selector-container">
                     <label for="note-category-select">Tag:</label>
                     <select id="note-category-select">
@@ -494,21 +601,35 @@
             <div id="toolbar-container"></div>
 
             <!-- Rich Text Editor - Contenteditable div that replaces traditional textarea -->
-            <!-- This allows us to apply rich text formatting while maintaining content control -->
             <div id="rich-editor"
                  contenteditable="true"
                  class="rich-editor-container"
                  placeholder="Start typing your note..."
                  spellcheck="true"></div>
 
-                 <!-- Word and character counter that updates in real-time -->
-                 <p id="save-status" class="save-status">Ready to type...</p>
+            <!-- Status + word/character counter -->
+            <p id="save-status" class="save-status">Ready to type...</p>
             <p id="word-count">Words: 0 | Characters: 0</p>
 
             <div class="controls">
                 <button id="new-note">📄 New Note</button>
                 <button id="show-favorite-btn">📌 Show Favorite</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Trash Bin UI (grafted from old branch) -->
+    <button id="trash-toggle" title="Open Trash Bin">🗑️</button>
+    <div id="trash-panel" class="trash-panel">
+        <div class="trash-header">
+            <span>Trash Bin</span>
+            <span id="trash-count">0 items</span>
+        </div>
+        <div id="trash-list" class="trash-list">
+            <p style="font-size:12px;color:gray;">Trash is empty.</p>
+        </div>
+        <div class="trash-footer">
+            <button id="empty-trash">Empty Trash</button>
         </div>
     </div>
 

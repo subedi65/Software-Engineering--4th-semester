@@ -48,6 +48,7 @@ that's it.
 ## 🔬 Deep-Dive Feature Spotlight: [Insert Member 3 Feature Title]
 *(Authored by Roy Amit — ID: 20248911741)*
 
+
 > [!NOTE]
 > **Favourite**
 > *Add notes into favourite list.*
@@ -61,9 +62,9 @@ I have added the featurs to add the notes into favourites . User can quickly ope
 
 > [!NOTE]
 > **Feature Overview**
-> *[Member 4: Replace this text with a short summary sentence of your feature's technical impact or core system change.]*
+> *Voice Typing , Trash bin and Multi Lingual*
 
-[Member 4: Paste your detailed engineering paragraph here explaining how your feature works behind the scenes, referencing specific backend or frontend mechanisms.]
+I have successfully added the voice to text system in our software, that will detect the english language and display it into the textare. Another feature that i have added is that the trash bin, when user delete some notes, it first goes to trash bin, so that user get one chance to un-delete/restore the mistakely deleted notes. and finally i have added english and korean language system.
 
 ---
 
@@ -72,9 +73,9 @@ I have added the featurs to add the notes into favourites . User can quickly ope
 
 > [!NOTE]
 > **Feature Overview**
-> *[Member 5: Replace this text with a short summary sentence of your feature's technical impact or core system change.]*
+> *I have added expot the note as pdf.*
 
-[Member 5: Paste your detailed engineering paragraph here explaining how your feature works behind the scenes, referencing specific backend or frontend mechanisms.]
+i have added a feature that let the user to export the note as pdf format. I also supported the team as a TESTOR, I have tested every features, UI/UX and other flow and suggest the developers .
 
 ---
 
