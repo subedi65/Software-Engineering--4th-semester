@@ -62,10 +62,12 @@ In our Electron application, opening a note in a separate window relies on a sec
 
 ## 🔬 Deep-Dive Feature Spotlight: [Insert Member 5 Feature Title]
 *(Authored by Pariyar Prabin — ID: 2024991102)*
+ **Feature Overview**
+> *[Member 4: Replace this text with a short summary sentence of your feature's technical impact or core system change.]*
 
-> [!NOTE]
-> Feature :Export to pdf
-> Exporting a note to a PDF leverages Chromium's native rendering engine. First, the application converts the note's raw content (like Markdown or plain text) into a styled HTML structure using CSS templates. Next, the main process invokes Electron's built-in webContents.printToPDF() API, which runs a headless print simulation on that HTML page using specified layout configurations (such as margins and orientation). Finally, Chromium compiles this layout into a binary PDF data stream (a Buffer), which the Node.js File System (fs) module catches and writes directly onto your local storage as a
+[Member 4: Paste your detailed engineering paragraph here explaining how your feature works behind the scenes, referencing specific backend or frontend mechanisms.]
+
+ 
 
 ---
 
